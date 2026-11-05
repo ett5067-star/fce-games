@@ -4,492 +4,490 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FCE Space Command - Vocab Training</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --neon-cyan: #00f3ff;
+            --neon-blue: #00f3ff;
             --neon-purple: #bc13fe;
             --neon-green: #00ff73;
-            --space-dark: #050510;
+            --space-dark: #0a0a1a;
+            --text-light: #e0e0ff;
         }
-
         body {
             background-color: var(--space-dark);
-            color: #fff;
+            color: var(--text-light);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
         }
-
-        /* Neon Utilities */
-        .text-neon-cyan {
-            color: var(--neon-cyan);
-            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+        h1 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            font-size: 2.2em;
         }
-        .text-neon-purple {
-            color: var(--neon-purple);
-            text-shadow: 0 0 10px rgba(188, 19, 254, 0.7);
+        .stats {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: var(--neon-green);
+            text-shadow: 0 0 5px var(--neon-green);
         }
-        .border-neon-purple {
-            border: 1px solid var(--neon-purple);
-            box-shadow: 0 0 10px rgba(188, 19, 254, 0.3), inset 0 0 5px rgba(188, 19, 254, 0.2);
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
         }
-        .border-neon-cyan {
-            border: 1px solid var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3), inset 0 0 5px rgba(0, 243, 255, 0.2);
-        }
-        .bg-neon-cyan-dim { background-color: rgba(0, 243, 255, 0.1); }
-        .bg-neon-purple-dim { background-color: rgba(188, 19, 254, 0.1); }
-
-        /* Navigation Buttons */
-        .nav-btn {
+        button {
             background: transparent;
-            color: var(--neon-cyan);
-            border: 2px solid var(--neon-cyan);
-            transition: all 0.3s ease;
+            color: var(--neon-purple);
+            border: 2px solid var(--neon-purple);
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
         }
-        .nav-btn:hover, .nav-btn.active-tab {
-            background: var(--neon-cyan);
-            color: var(--space-dark);
-            box-shadow: 0 0 15px var(--neon-cyan);
+        button:hover, button.active-btn {
+            background: var(--neon-purple);
+            color: white;
+            box-shadow: 0 0 15px var(--neon-purple);
         }
-
-        /* Flashcards */
-        .flashcard-container {
-            perspective: 1000px;
+        .game-container {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+            min-height: 300px;
         }
+        .active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Flashcards Styles */
         .flashcard {
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
+            width: 300px;
+            height: 200px;
+            margin: 20px auto;
+            perspective: 1000px;
             cursor: pointer;
         }
-        .flashcard.flipped { transform: rotateY(180deg); }
-        .flashcard-face {
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
             backface-visibility: hidden;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 10px;
+            border: 2px solid var(--neon-blue);
+            padding: 20px;
+            box-sizing: border-box;
+            background: #111122;
         }
-        .flashcard-back { transform: rotateY(180deg); }
+        .flashcard-front { color: var(--neon-blue); font-size: 1.5em; font-weight: bold; }
+        .flashcard-back { background: var(--neon-blue); color: var(--space-dark); transform: rotateY(180deg); font-size: 1.2em; }
 
-        /* Word Search */
+        /* Ahorcado Styles */
+        .keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 20px; }
+        .key { padding: 10px 15px; background: #1a1a3a; border: 1px solid var(--neon-blue); color: white; cursor: pointer; }
+        .key.disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Sopa de Letras Styles */
         #ws-grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
+            grid-template-columns: repeat(12, 30px);
             gap: 2px;
-            max-width: 400px;
-            margin: 0 auto;
+            justify-content: center;
+            margin: 20px auto;
+            width: fit-content;
         }
         .ws-cell {
-            aspect-ratio: 1;
+            width: 30px;
+            height: 30px;
+            background: #1a1a3a;
+            border: 1px solid var(--neon-blue);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.2rem;
             cursor: pointer;
             user-select: none;
-            transition: all 0.2s;
+            transition: 0.2s;
         }
-        .ws-cell.selected {
-            background-color: var(--neon-purple);
-            color: white;
-            box-shadow: 0 0 10px var(--neon-purple);
-        }
-        .ws-cell.found {
-            background-color: var(--neon-cyan);
-            color: var(--space-dark);
-        }
-
-        /* Crossword */
-        #cw-grid {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 2px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .cw-cell {
-            aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #333;
-            position: relative;
+        .ws-cell.selected { background: var(--neon-purple); color: white; }
+        .ws-cell.found { background: var(--neon-blue); color: var(--space-dark); }
+        #ws-words {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
         }
-        .cw-cell.empty { border: none; background: transparent; }
-        .cw-input {
-            width: 100%; height: 100%;
-            background: transparent; border: none;
-            color: var(--neon-cyan); text-align: center;
-            font-size: 1.2rem; font-weight: bold; text-transform: uppercase;
-            outline: none;
-        }
-        .cw-num {
-            position: absolute; top: 2px; left: 2px;
-            font-size: 0.6rem; color: #aaa; pointer-events: none;
-        }
-        .cw-correct .cw-input {
-            color: var(--space-dark);
-        }
-        .cw-correct {
-            background-color: var(--neon-green);
-            border-color: var(--neon-green);
-            box-shadow: 0 0 10px var(--neon-green);
-        }
+        .ws-word-item { padding: 5px 10px; border-radius: 15px; background: #111122; border: 1px solid #444; }
+        .ws-word-item.found { text-decoration: line-through; opacity: 0.5; border-color: var(--neon-green); }
 
-        /* Hangman */
-        .key-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--neon-purple);
-            color: white; transition: 0.2s;
+        /* Crucigrama Styles */
+        .crossword-grid {
+            display: grid;
+            gap: 2px;
+            justify-content: center;
+            margin: 20px auto;
+            width: fit-content;
         }
-        .key-btn:hover:not(:disabled) {
-            background: var(--neon-purple);
-            box-shadow: 0 0 10px var(--neon-purple);
+        .cw-cell { 
+            width: 35px; height: 35px; background: #1a1a3a; border: 1px solid #444; 
+            display: flex; align-items: center; justify-content: center; position: relative;
         }
-        .key-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* Alerts */
-        .alert-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 50; display: none;
-            align-items: center; justify-content: center; flex-direction: column;
+        .cw-cell input { 
+            width: 100%; height: 100%; background: transparent; border: none; 
+            color: var(--neon-blue); text-align: center; font-size: 1.2em; text-transform: uppercase; font-weight: bold; 
         }
+        .cw-cell.empty { background: transparent; border: none; }
+        .cw-cell .num { position: absolute; top: 2px; left: 2px; font-size: 10px; color: #888; pointer-events: none;}
+        .cw-correct { background-color: rgba(0, 255, 115, 0.2) !important; border-color: var(--neon-green) !important; }
         
-        .hide-view { display: none !important; }
+        /* Animación de Felicitación */
+        .celebration {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            background: rgba(0, 255, 115, 0.9); color: black; padding: 20px 40px;
+            border-radius: 10px; font-size: 2em; font-weight: bold; z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .celebration.show { transform: translate(-50%, -50%) scale(1); }
     </style>
 </head>
-<body class="flex flex-col items-center p-4">
+<body>
 
-    <!-- Header & Streak -->
-    <header class="w-full max-w-4xl flex flex-col md:flex-row justify-between items-center mb-8 mt-4">
-        <h1 class="text-3xl md:text-4xl font-black text-neon-cyan text-center mb-4 md:mb-0">FCE SPACE COMMAND</h1>
-        <div class="border-neon-cyan bg-neon-cyan-dim px-6 py-2 rounded-lg text-center">
-            <p class="text-xs text-gray-300 uppercase tracking-widest">Win Streak</p>
-            <p class="text-2xl font-bold text-neon-cyan" id="streak-counter">0 🚀</p>
+    <h1>🚀 FCE Space Command: B2 Prep</h1>
+    <div class="stats">🌟 Racha de Victorias: <span id="streak">0</span></div>
+
+    <div class="menu">
+        <button onclick="showGame('flashcards')" id="btn-flashcards" class="active-btn">1. Tarjetas</button>
+        <button onclick="showGame('wordsearch')" id="btn-wordsearch">2. Sopa de Letras</button>
+        <button onclick="showGame('crossword')" id="btn-crossword">3. Crucigrama</button>
+        <button onclick="showGame('hangman')" id="btn-hangman">4. Ahorcado</button>
+    </div>
+
+    <!-- 1. Tarjetas de Estudio -->
+    <div id="flashcards" class="game-container active">
+        <h2>Tarjetas de Memorización</h2>
+        <p>Toca la tarjeta para ver la palabra correspondiente a la definición.</p>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front" id="fc-clue">Cargando...</div>
+                <div class="flashcard-back" id="fc-word">Cargando...</div>
+            </div>
         </div>
-    </header>
-
-    <!-- Navigation Tabs -->
-    <nav class="flex flex-wrap justify-center gap-3 mb-8 w-full max-w-4xl">
-        <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-btn active-tab px-4 py-2 rounded font-bold uppercase text-sm">1. Flashcards</button>
-        <button onclick="switchTab('wordsearch')" id="tab-wordsearch" class="nav-btn px-4 py-2 rounded font-bold uppercase text-sm">2. Sopa de Letras</button>
-        <button onclick="switchTab('crossword')" id="tab-crossword" class="nav-btn px-4 py-2 rounded font-bold uppercase text-sm">3. Crucigrama</button>
-        <button onclick="switchTab('hangman')" id="tab-hangman" class="nav-btn px-4 py-2 rounded font-bold uppercase text-sm">4. Ahorcado</button>
-    </nav>
-
-    <!-- Main Content Container -->
-    <main class="w-full max-w-4xl flex-grow">
-        
-        <!-- GAME 1: FLASHCARDS -->
-        <section id="view-flashcards" class="w-full flex flex-col items-center">
-            <h2 class="text-xl text-neon-purple font-bold mb-2">Memory Matrix</h2>
-            <p class="text-gray-400 mb-6 text-sm text-center">Haz clic en la tarjeta para revelar la palabra oculta.</p>
-            
-            <div class="flashcard-container w-full max-w-md h-64 mb-6">
-                <div id="fc-card" class="flashcard w-full h-full relative" onclick="this.classList.toggle('flipped')">
-                    <div class="flashcard-face border-neon-cyan bg-neon-cyan-dim rounded-xl p-6 text-center">
-                        <span class="text-sm text-gray-400 uppercase tracking-widest mb-2">Definition</span>
-                        <p id="fc-def" class="text-xl font-semibold text-white"></p>
-                    </div>
-                    <div class="flashcard-face flashcard-back border-neon-purple bg-neon-purple-dim rounded-xl p-6 text-center">
-                        <span class="text-sm text-gray-400 uppercase tracking-widest mb-2">Target Word</span>
-                        <p id="fc-word" class="text-3xl font-black text-neon-purple tracking-wider"></p>
-                    </div>
-                </div>
-            </div>
-            
-            <button onclick="nextFlashcard()" class="px-8 py-3 bg-transparent border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black rounded font-bold transition-all">Siguiente Palabra ➔</button>
-        </section>
-
-        <!-- GAME 2: WORD SEARCH -->
-        <section id="view-wordsearch" class="w-full flex flex-col items-center hide-view">
-            <h2 class="text-xl text-neon-purple font-bold mb-2">Nebula Search</h2>
-            <p class="text-gray-400 mb-4 text-sm text-center">Selecciona las letras para encontrar el vocabulario.</p>
-            
-            <div id="ws-grid" class="w-full border-neon-purple bg-gray-900 p-2 rounded-lg mb-6"></div>
-            
-            <div id="ws-word-list" class="flex flex-wrap justify-center gap-3 mb-6 w-full max-w-md">
-                <!-- Words injected here -->
-            </div>
-            
-            <div class="flex gap-4">
-                <button onclick="checkWordSearch()" class="px-6 py-2 bg-neon-cyan text-black rounded font-bold hover:shadow-[0_0_15px_#00f3ff] transition-all">Verificar Palabra</button>
-                <button onclick="clearWsSelection()" class="px-6 py-2 border-2 border-red-500 text-red-500 rounded font-bold hover:bg-red-500 hover:text-white transition-all">Limpiar</button>
-            </div>
-        </section>
-
-        <!-- GAME 3: CROSSWORD -->
-        <section id="view-crossword" class="w-full flex flex-col items-center hide-view">
-            <h2 class="text-xl text-neon-purple font-bold mb-2">Orbital Crossword</h2>
-            <p class="text-gray-400 mb-4 text-sm text-center">Escribe las letras correspondientes a cada pista.</p>
-            
-            <div id="cw-grid" class="w-full bg-gray-900 p-2 rounded-lg mb-6 border border-gray-700"></div>
-            
-            <div class="w-full max-w-md bg-gray-800 p-4 rounded-lg border border-gray-700 mb-6 text-sm">
-                <h3 class="text-neon-cyan font-bold mb-2 border-b border-gray-700 pb-1">Horizontal (Across)</h3>
-                <p class="mb-1"><strong>1.</strong> To perform or complete a task (8)</p>
-                <p class="mb-4"><strong>4.</strong> Absolutely necessary; extremely important (9)</p>
-                
-                <h3 class="text-neon-cyan font-bold mb-2 border-b border-gray-700 pb-1">Vertical (Down)</h3>
-                <p class="mb-1"><strong>2.</strong> The way a thing turns out; a consequence (7)</p>
-                <p><strong>3.</strong> A feeling of worry or nervousness (7)</p>
-            </div>
-
-            <button onclick="checkCrossword()" class="px-8 py-3 bg-neon-purple text-white rounded font-bold hover:shadow-[0_0_15px_#bc13fe] transition-all">Verificar Crucigrama</button>
-        </section>
-
-        <!-- GAME 4: HANGMAN -->
-        <section id="view-hangman" class="w-full flex flex-col items-center hide-view">
-            <h2 class="text-xl text-neon-purple font-bold mb-2">Shield Decrypter</h2>
-            <p class="text-gray-400 mb-6 text-sm text-center">Adivina la palabra para restaurar los escudos. Si fallas 6 veces, mueres.</p>
-
-            <div class="w-full max-w-lg bg-neon-cyan-dim border-neon-cyan p-4 rounded-lg text-center mb-8">
-                <p class="text-xs text-neon-cyan uppercase tracking-widest mb-1">Clue Detected</p>
-                <p id="hm-clue" class="text-lg font-semibold text-white"></p>
-            </div>
-
-            <div class="flex justify-between items-end w-full max-w-lg mb-8 px-4">
-                <div id="hm-word" class="text-3xl md:text-4xl tracking-[0.3em] font-bold text-white uppercase">_ _ _ _</div>
-                <div class="text-right">
-                    <p class="text-xs text-gray-400 mb-1">Escudos</p>
-                    <p id="hm-lives" class="text-3xl font-black text-red-500 text-shadow-red">6</p>
-                </div>
-            </div>
-
-            <div id="hm-keyboard" class="flex flex-wrap justify-center gap-2 w-full max-w-lg"></div>
-        </section>
-
-    </main>
-
-    <!-- Custom Alerts -->
-    <div id="alert-win" class="alert-overlay">
-        <div class="text-6xl mb-4">🚀</div>
-        <h2 class="text-4xl font-black text-neon-green mb-2">¡MISIÓN EXITOSA!</h2>
-        <p class="text-xl text-white">+1 a tu racha de victorias</p>
+        <button onclick="nextFlashcard()" style="margin-top:20px; border-color: var(--neon-blue); color: var(--neon-blue);">Siguiente Tarjeta</button>
     </div>
 
-    <div id="alert-lose" class="alert-overlay">
-        <div class="text-6xl mb-4">💥</div>
-        <h2 class="text-4xl font-black text-red-500 mb-2">NAVE DESTRUIDA</h2>
-        <p id="lose-msg" class="text-xl text-white mb-6">La palabra era: XXXX</p>
-        <button onclick="document.getElementById('alert-lose').style.display='none'; initHangman();" class="px-6 py-2 bg-red-600 text-white rounded font-bold">Reintentar</button>
+    <!-- 2. Sopa de Letras -->
+    <div id="wordsearch" class="game-container">
+        <h2>Nebulosa de Palabras (Dinámica)</h2>
+        <p>Encuentra las palabras haciendo clic/tocando las letras una por una para formar la palabra.</p>
+        <div id="ws-grid"></div>
+        <div id="ws-words"></div>
+        <button onclick="checkWordSearch()" style="margin-top: 15px;">Verificar Selección</button>
+        <button onclick="clearWsSelection()" style="margin-top: 15px; border-color: #ff0055; color: #ff0055;">Limpiar</button>
     </div>
+
+    <!-- 3. Crucigrama -->
+    <div id="crossword" class="game-container">
+        <h2>Crucigrama Estelar (Rotativo)</h2>
+        <p>Escribe las letras en las casillas. Presiona 'Verificar' cuando termines.</p>
+        <div class="crossword-grid" id="cw-grid"></div>
+        <div id="cw-clues" style="text-align: left; margin-top: 20px; font-size: 0.9em; max-width: 500px; margin-left: auto; margin-right: auto;">
+        </div>
+        <button onclick="checkCrossword()" style="margin-top: 15px;">Verificar Crucigrama</button>
+    </div>
+
+    <!-- 4. Ahorcado -->
+    <div id="hangman" class="game-container">
+        <h2>Ahorcado: Escudos Defensivos</h2>
+        <p style="color: #aaa; font-style: italic;" id="hm-clue">Definición aquí</p>
+        <h3 id="hm-word" style="letter-spacing: 10px; font-size: 2.5em; margin: 30px 0;"></h3>
+        <p>Fallos permitidos: <span id="hm-lives" style="color: #ff0055; font-weight: bold; font-size: 1.5em;">6</span></p>
+        <div class="keyboard" id="hm-keyboard"></div>
+    </div>
+
+    <div id="celebration" class="celebration">¡Misión Cumplida! 🚀</div>
 
     <script>
-        // --- DATA ---
-        const vocabList = [
-            { word: "CARRYOUT", def: "To perform or complete a task" },
-            { word: "ANXIETY", def: "A feeling of worry or nervousness" },
-            { word: "OUTCOME", def: "The way a thing turns out; a consequence" },
-            { word: "ESSENTIAL", def: "Absolutely necessary; extremely important" }
+        // Amplia lista de vocabulario FCE B2
+        const vocab = [
+            { word: "CARRYOUT", clue: "To perform or complete a task" },
+            { word: "ANXIETY", clue: "A feeling of worry or nervousness" },
+            { word: "COMEACROSS", clue: "To find or discover something by chance" },
+            { word: "OUTCOME", clue: "The way a thing turns out; a consequence" },
+            { word: "ESSENTIAL", clue: "Absolutely necessary; extremely important" },
+            { word: "ADVANTAGE", clue: "A condition that puts one in a favorable position" },
+            { word: "BENEFIT", clue: "An advantage or profit gained from something" },
+            { word: "MEASURE", clue: "A plan or course of action taken to achieve a purpose" },
+            { word: "CHALLENGE", clue: "A task or situation that tests someone's abilities" },
+            { word: "EVIDENCE", clue: "Facts indicating whether a belief is true" },
+            { word: "SUSTAIN", clue: "To strengthen or support physically or mentally over time" },
+            { word: "TENDENCY", clue: "An inclination toward a particular characteristic" }
         ];
 
-        // --- GLOBAL & STREAK ---
-        let streak = parseInt(localStorage.getItem('fce_streak') || '0');
-        document.getElementById('streak-counter').innerText = streak + " 🚀";
+        let streak = localStorage.getItem('fce_streak') || 0;
+        document.getElementById('streak').innerText = streak;
 
         function updateStreak(won) {
-            if (won) {
-                streak++;
-                document.getElementById('alert-win').style.display = 'flex';
-                setTimeout(() => { document.getElementById('alert-win').style.display = 'none'; }, 2000);
+            if(won) {
+                streak = parseInt(streak) + 1;
+                showCelebration();
             } else {
                 streak = 0;
             }
             localStorage.setItem('fce_streak', streak);
-            document.getElementById('streak-counter').innerText = streak + " 🚀";
+            document.getElementById('streak').innerText = streak;
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('section').forEach(sec => sec.classList.add('hide-view'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-tab'));
-            
-            document.getElementById('view-' + tabId).classList.remove('hide-view');
-            document.getElementById('tab-' + tabId).classList.add('active-tab');
+        function showCelebration() {
+            const el = document.getElementById('celebration');
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2000);
         }
 
-        // --- GAME 1: FLASHCARDS ---
+        function showGame(id) {
+            document.querySelectorAll('.game-container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active-btn');
+        }
+
+        /* --- 1. Lógica de Tarjetas --- */
         let fcIndex = 0;
-        function loadFlashcard() {
-            document.getElementById('fc-card').classList.remove('flipped');
-            setTimeout(() => {
-                document.getElementById('fc-def').innerText = vocabList[fcIndex].def;
-                document.getElementById('fc-word').innerText = vocabList[fcIndex].word;
-            }, 150); // wait for flip animation to hide text
-        }
+        // Mezclar vocabulario para las flashcards
+        let fcVocab = [...vocab].sort(() => Math.random() - 0.5);
         function nextFlashcard() {
-            fcIndex = (fcIndex + 1) % vocabList.length;
-            loadFlashcard();
+            fcIndex = (fcIndex + 1) % fcVocab.length;
+            document.querySelector('.flashcard').classList.remove('flipped');
+            setTimeout(() => {
+                document.getElementById('fc-clue').innerText = fcVocab[fcIndex].clue;
+                document.getElementById('fc-word').innerText = fcVocab[fcIndex].word;
+            }, 300);
         }
+        nextFlashcard(); // Inicializar primera tarjeta
 
-        // --- GAME 2: WORD SEARCH ---
-        const wsGridSize = 10;
-        let wsSelected = [];
-        let wsFound = 0;
+        /* --- 2. Lógica Sopa de Letras (Generación Dinámica) --- */
+        const WS_SIZE = 12;
+        let wsWordsCurrent = [];
+        let wsFoundCount = 0;
 
         function initWordSearch() {
-            const grid = document.getElementById('ws-grid');
-            const list = document.getElementById('ws-word-list');
-            grid.innerHTML = '';
-            list.innerHTML = '';
-            wsSelected = [];
-            wsFound = 0;
+            const gridEl = document.getElementById('ws-grid');
+            const wordsEl = document.getElementById('ws-words');
+            gridEl.innerHTML = '';
+            wordsEl.innerHTML = '';
+            wsFoundCount = 0;
 
-            // Render word list
-            vocabList.forEach(v => {
-                let badge = document.createElement('div');
-                badge.id = 'ws-badge-' + v.word;
-                badge.className = 'px-3 py-1 bg-gray-800 border border-gray-600 rounded-full text-sm text-gray-400 transition-all';
-                badge.innerText = v.word;
-                list.appendChild(badge);
+            // Elegir 5 palabras al azar
+            let shuffled = [...vocab].sort(() => 0.5 - Math.random());
+            wsWordsCurrent = shuffled.slice(0, 5).map(v => v.word);
+
+            // Crear grid vacío
+            let grid = Array.from({length: WS_SIZE}, () => Array(WS_SIZE).fill(''));
+
+            // Intentar colocar cada palabra
+            wsWordsCurrent.forEach(word => {
+                let placed = false;
+                let attempts = 0;
+                while(!placed && attempts < 100) {
+                    attempts++;
+                    let dir = Math.floor(Math.random() * 3); // 0: Horizontal, 1: Vertical, 2: Diagonal
+                    let row = Math.floor(Math.random() * WS_SIZE);
+                    let col = Math.floor(Math.random() * WS_SIZE);
+                    
+                    let canPlace = true;
+                    for(let i=0; i<word.length; i++) {
+                        let r = row + (dir === 1 || dir === 2 ? i : 0);
+                        let c = col + (dir === 0 || dir === 2 ? i : 0);
+                        if(r >= WS_SIZE || c >= WS_SIZE || (grid[r][c] !== '' && grid[r][c] !== word[i])) {
+                            canPlace = false; break;
+                        }
+                    }
+
+                    if(canPlace) {
+                        for(let i=0; i<word.length; i++) {
+                            let r = row + (dir === 1 || dir === 2 ? i : 0);
+                            let c = col + (dir === 0 || dir === 2 ? i : 0);
+                            grid[r][c] = word[i];
+                        }
+                        placed = true;
+                    }
+                }
             });
 
-            // Create empty 10x10 matrix
-            let matrix = Array(10).fill().map(() => Array(10).fill(''));
-            
-            // Hardcode positions to guarantee playability without complex generation
-            // CARRYOUT: row 2, col 1-8
-            const w1 = "CARRYOUT"; for(let i=0; i<w1.length; i++) matrix[2][1+i] = w1[i];
-            // OUTCOME: col 6, row 2-8 (intersects CARRYOUT at 'O')
-            const w2 = "OUTCOME"; for(let i=0; i<w2.length; i++) matrix[2+i][6] = w2[i];
-            // ESSENTIAL: row 8, col 0-8 (intersects OUTCOME at 'E')
-            const w3 = "ESSENTIAL"; for(let i=0; i<w3.length; i++) matrix[8][0+i] = w3[i];
-            // ANXIETY: row 0, col 3-9
-            const w4 = "ANXIETY"; for(let i=0; i<w4.length; i++) matrix[0][3+i] = w4[i];
-
-            // Fill empty spaces with random letters
+            // Llenar vacíos con letras aleatorias y renderizar
             const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            for(let r=0; r<10; r++) {
-                for(let c=0; c<10; c++) {
-                    if(matrix[r][c] === '') matrix[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
-                    
+            for(let r=0; r<WS_SIZE; r++) {
+                for(let c=0; c<WS_SIZE; c++) {
+                    if(grid[r][c] === '') {
+                        grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    }
                     let cell = document.createElement('div');
-                    cell.className = 'ws-cell border border-gray-700 bg-gray-800';
-                    cell.innerText = matrix[r][c];
-                    cell.dataset.r = r;
-                    cell.dataset.c = c;
-                    cell.onclick = () => toggleWsCell(cell);
-                    grid.appendChild(cell);
+                    cell.className = 'ws-cell';
+                    cell.innerText = grid[r][c];
+                    cell.onclick = function() {
+                        if(!this.classList.contains('found')) {
+                            this.classList.toggle('selected');
+                        }
+                    };
+                    gridEl.appendChild(cell);
                 }
             }
-        }
 
-        function toggleWsCell(cell) {
-            if (cell.classList.contains('found')) return;
-            cell.classList.toggle('selected');
+            // Mostrar palabras a buscar
+            wsWordsCurrent.forEach(w => {
+                let div = document.createElement('div');
+                div.className = 'ws-word-item';
+                div.id = 'wsword-' + w;
+                div.innerText = w;
+                wordsEl.appendChild(div);
+            });
         }
 
         function clearWsSelection() {
-            document.querySelectorAll('.ws-cell.selected').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.ws-cell.selected').forEach(el => el.classList.remove('selected'));
         }
 
         function checkWordSearch() {
             let selectedCells = Array.from(document.querySelectorAll('.ws-cell.selected'));
             let selectedWord = selectedCells.map(c => c.innerText).join('');
-            let selectedReversed = selectedWord.split('').reverse().join('');
+            let selectedWordRev = selectedCells.map(c => c.innerText).reverse().join('');
             
-            let matchedWord = vocabList.find(v => v.word === selectedWord || v.word === selectedReversed);
-
-            if (matchedWord) {
-                let badge = document.getElementById('ws-badge-' + matchedWord.word);
-                if (!badge.classList.contains('bg-neon-green')) {
-                    badge.classList.replace('bg-gray-800', 'bg-neon-green');
-                    badge.classList.replace('text-gray-400', 'text-black');
-                    badge.classList.replace('border-gray-600', 'border-neon-green');
-                    
+            let foundWord = wsWordsCurrent.find(w => w === selectedWord || w === selectedWordRev);
+            
+            if(foundWord) {
+                let item = document.getElementById('wsword-' + foundWord);
+                if(item && !item.classList.contains('found')) {
+                    item.classList.add('found');
                     selectedCells.forEach(c => {
                         c.classList.remove('selected');
                         c.classList.add('found');
                     });
-                    
-                    wsFound++;
-                    if (wsFound === vocabList.length) {
+                    wsFoundCount++;
+                    if(wsFoundCount === wsWordsCurrent.length) {
                         updateStreak(true);
-                        setTimeout(initWordSearch, 2500);
+                        setTimeout(initWordSearch, 2000);
                     }
                 }
             } else {
-                clearWsSelection();
+                clearWsSelection(); // Limpiar si es incorrecta
             }
         }
 
-        // --- GAME 3: CROSSWORD ---
-        /*
-          Layout Intersections carefully calculated:
-          1 Across (CARRYOUT): Row 2, Col 1-8
-          2 Down (OUTCOME): Row 2, Col 6 to Row 8, Col 6. ('O' intersects CARRYOUT)
-          3 Down (ANXIETY): Row 3, Col 5 to Row 9, Col 5.
-          4 Across (ESSENTIAL): Row 4, Col 1-9. ('E' at 4,1. 'T' at 4,6 intersects OUTCOME. 'N' at 4,5 intersects ANXIETY)
-        */
-        const cwLayout = [
-            // Row 0, 1 (Empty)
-            Array(10).fill(0),
-            Array(10).fill(0),
-            // Row 2: CARRYOUT + start of OUTCOME
-            [0, {n:1, a:'C'}, {a:'A'}, {a:'R'}, {a:'R'}, {a:'Y'}, {n:2, a:'O'}, {a:'U'}, {a:'T'}, 0],
-            // Row 3: 'U' for OUTCOME, 'A' for ANXIETY
-            [0, 0, 0, 0, 0, {n:3, a:'A'}, {a:'U'}, 0, 0, 0],
-            // Row 4: ESSENTIAL (intersects ANXIETY 'N', OUTCOME 'T')
-            [0, {n:4, a:'E'}, {a:'S'}, {a:'S'}, {a:'E'}, {a:'N'}, {a:'T'}, {a:'I'}, {a:'A'}, {a:'L'}],
-            // Row 5: ANXIETY 'X', OUTCOME 'C'
-            [0, 0, 0, 0, 0, {a:'X'}, {a:'C'}, 0, 0, 0],
-            // Row 6: ANXIETY 'I', OUTCOME 'O'
-            [0, 0, 0, 0, 0, {a:'I'}, {a:'O'}, 0, 0, 0],
-            // Row 7: ANXIETY 'E', OUTCOME 'M'
-            [0, 0, 0, 0, 0, {a:'E'}, {a:'M'}, 0, 0, 0],
-            // Row 8: ANXIETY 'T', OUTCOME 'E'
-            [0, 0, 0, 0, 0, {a:'T'}, {a:'E'}, 0, 0, 0],
-            // Row 9: ANXIETY 'Y'
-            [0, 0, 0, 0, 0, {a:'Y'}, 0, 0, 0, 0]
+        /* --- 3. Lógica Crucigrama (Tableros Rotativos) --- */
+        // Colección de tableros pre-diseñados para asegurar que nunca se rompa
+        const cwBoards = [
+            {
+                cols: 9, rows: 9,
+                layout: [
+                    [0, {n:1, a:'A'}, {a:'N'}, {a:'X'}, {a:'I'}, {a:'E'}, {a:'T'}, {a:'Y'}, 0],
+                    [0, {a:'D'}, 0, 0, 0, 0, 0, 0, 0],
+                    [0, {a:'V'}, 0, 0, 0, 0, 0, 0, 0],
+                    [0, {a:'A'}, {n:2, a:'O'}, {a:'U'}, {a:'T'}, {a:'C'}, {a:'O'}, {a:'M'}, {a:'E'}], 
+                    [0, {a:'N'}, 0, 0, 0, 0, 0, 0, 0],
+                    [0, {a:'T'}, 0, 0, 0, 0, 0, 0, 0],
+                    [0, {a:'A'}, 0, 0, 0, 0, 0, 0, 0],
+                    [0, {a:'G'}, 0, 0, 0, 0, 0, 0, 0],
+                    [0, {a:'E'}, 0, 0, 0, 0, 0, 0, 0]
+                ],
+                clues: [
+                    "<strong>1 (H):</strong> A feeling of worry or nervousness",
+                    "<strong>1 (V):</strong> A condition that puts one in a favorable position",
+                    "<strong>2 (H):</strong> The way a thing turns out; a consequence"
+                ]
+            },
+            {
+                cols: 8, rows: 8,
+                layout: [
+                    [0, 0, {n:1, a:'B'}, 0, 0, 0, 0, 0],
+                    [0, 0, {a:'E'}, 0, 0, 0, 0, 0],
+                    [{n:2, a:'M'},{a:'E'},{a:'N'},{a:'T'},{a:'A'},{a:'L'}, 0, 0],
+                    [0, 0, {a:'E'}, 0, 0, 0, 0, 0],
+                    [0, 0, {a:'F'}, {n:3, a:'A'}, {a:'C'}, {a:'T'}, 0, 0],
+                    [0, 0, {a:'I'}, 0, 0, 0, 0, 0],
+                    [0, 0, {a:'T'}, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0]
+                ],
+                clues: [
+                    "<strong>1 (V):</strong> An advantage or profit gained from something (BENEFIT)",
+                    "<strong>2 (H):</strong> Relating to the mind (MENTAL)",
+                    "<strong>3 (H):</strong> A thing that is known or proved to be true (FACT)"
+                ]
+            }
         ];
 
         function initCrossword() {
-            const grid = document.getElementById('cw-grid');
-            grid.innerHTML = '';
+            // Seleccionar un tablero aleatorio
+            let board = cwBoards[Math.floor(Math.random() * cwBoards.length)];
             
-            for(let r=0; r<10; r++) {
-                for(let c=0; c<10; c++) {
-                    let cellData = cwLayout[r][c];
+            const gridEl = document.getElementById('cw-grid');
+            const cluesEl = document.getElementById('cw-clues');
+            gridEl.style.gridTemplateColumns = `repeat(${board.cols}, 35px)`;
+            gridEl.innerHTML = '';
+            cluesEl.innerHTML = board.clues.map(c => `<p>${c}</p>`).join('');
+            
+            for(let r=0; r<board.rows; r++) {
+                for(let c=0; c<board.cols; c++) {
+                    let cellData = board.layout[r][c];
                     let div = document.createElement('div');
                     
-                    if (cellData === 0) {
+                    if(cellData === 0) {
                         div.className = 'cw-cell empty';
                     } else {
                         div.className = 'cw-cell';
-                        if (cellData.n) {
-                            let num = document.createElement('span');
-                            num.className = 'cw-num';
+                        if(cellData.n) {
+                            let num = document.createElement('div');
+                            num.className = 'num';
                             num.innerText = cellData.n;
                             div.appendChild(num);
                         }
-                        let input = document.createElement('input');
-                        input.type = 'text';
-                        input.maxLength = 1;
-                        input.className = 'cw-input';
-                        input.dataset.ans = cellData.a;
-                        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
-                        div.appendChild(input);
+                        let inp = document.createElement('input');
+                        inp.type = 'text';
+                        inp.maxLength = 1;
+                        inp.dataset.ans = cellData.a;
+                        inp.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+                        div.appendChild(inp);
                     }
-                    grid.appendChild(div);
+                    gridEl.appendChild(div);
                 }
             }
         }
 
         function checkCrossword() {
-            let inputs = document.querySelectorAll('.cw-input');
+            let inputs = document.querySelectorAll('#cw-grid input');
             let allCorrect = true;
             let filledCount = 0;
             
             inputs.forEach(inp => {
-                if (inp.value !== "") filledCount++;
-                if (inp.value === inp.dataset.ans) {
+                if(inp.value !== "") filledCount++;
+                if(inp.value === inp.dataset.ans) {
                     inp.parentElement.classList.add('cw-correct');
                 } else {
                     inp.parentElement.classList.remove('cw-correct');
@@ -497,73 +495,76 @@
                 }
             });
 
-            if (allCorrect && filledCount === inputs.length) {
+            if(allCorrect && filledCount === inputs.length) {
                 updateStreak(true);
-                // Bloquear inputs para no arruinar el estado de victoria
-                inputs.forEach(i => i.disabled = true);
+                setTimeout(initCrossword, 2500); // Carga otro crucigrama al ganar
             }
         }
 
-        // --- GAME 4: HANGMAN ---
+        /* --- 4. Lógica de Ahorcado --- */
         let hmWord = "";
         let hmGuessed = [];
         let hmLives = 6;
 
         function initHangman() {
-            const target = vocabList[Math.floor(Math.random() * vocabList.length)];
-            hmWord = target.word;
+            const item = vocab[Math.floor(Math.random() * vocab.length)];
+            hmWord = item.word;
             hmGuessed = [];
             hmLives = 6;
-            
-            document.getElementById('hm-clue').innerText = target.def;
+            document.getElementById('hm-clue').innerText = item.clue;
             document.getElementById('hm-lives').innerText = hmLives;
             updateHangmanDisplay();
-            
+            buildKeyboard();
+        }
+
+        function buildKeyboard() {
             const kb = document.getElementById('hm-keyboard');
             kb.innerHTML = '';
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(letter => {
-                let btn = document.createElement('button');
-                btn.className = 'key-btn w-10 h-12 md:w-12 md:h-14 font-bold rounded text-lg';
+                let btn = document.createElement('div');
+                btn.className = 'key';
                 btn.innerText = letter;
-                btn.onclick = () => handleHangmanGuess(letter, btn);
+                btn.onclick = () => handleGuess(letter, btn);
                 kb.appendChild(btn);
             });
         }
 
-        function handleHangmanGuess(letter, btn) {
-            btn.disabled = true;
+        function handleGuess(letter, btn) {
+            if(btn.classList.contains('disabled') || hmLives <= 0) return;
+            btn.classList.add('disabled');
             
-            if (hmWord.includes(letter)) {
+            if(hmWord.includes(letter)) {
                 hmGuessed.push(letter);
                 updateHangmanDisplay();
-                
-                // Check win
-                if (hmWord.split('').every(l => hmGuessed.includes(l))) {
-                    updateStreak(true);
-                    setTimeout(initHangman, 2500);
-                }
+                checkHangmanWin();
             } else {
                 hmLives--;
                 document.getElementById('hm-lives').innerText = hmLives;
-                if (hmLives === 0) {
-                    document.getElementById('lose-msg').innerText = "La palabra era: " + hmWord;
-                    document.getElementById('alert-lose').style.display = 'flex';
+                if(hmLives <= 0) {
+                    alert("¡Escudos destruidos! La palabra era: " + hmWord);
                     updateStreak(false);
+                    setTimeout(initHangman, 1500);
                 }
             }
         }
 
         function updateHangmanDisplay() {
-            let display = hmWord.split('').map(l => hmGuessed.includes(l) ? l : '_').join(' ');
+            let display = hmWord.split('').map(l => hmGuessed.includes(l) ? l : '_').join('');
             document.getElementById('hm-word').innerText = display;
         }
 
-        // --- INITIALIZE ALL ---
-        loadFlashcard();
+        function checkHangmanWin() {
+            let won = hmWord.split('').every(l => hmGuessed.includes(l));
+            if(won) {
+                updateStreak(true);
+                setTimeout(initHangman, 2000);
+            }
+        }
+
+        // Initialize all
         initWordSearch();
         initCrossword();
         initHangman();
-
     </script>
 </body>
 </html>
