@@ -115,17 +115,60 @@
         .key { padding: 10px 15px; background: #1a1a3a; border: 1px solid var(--neon-blue); color: white; cursor: pointer; }
         .key.disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Crucigrama Styles */
-        .crossword-grid {
+        /* Sopa de Letras Styles */
+        #ws-grid {
             display: grid;
-            grid-template-columns: repeat(10, 40px);
+            grid-template-columns: repeat(10, 30px);
             gap: 2px;
             justify-content: center;
             margin: 20px auto;
+            width: fit-content;
         }
-        .cw-cell { width: 40px; height: 40px; background: #1a1a3a; border: 1px solid #444; display: flex; align-items: center; justify-content: center; }
-        .cw-cell input { width: 100%; height: 100%; background: transparent; border: none; color: var(--neon-blue); text-align: center; font-size: 1.2em; text-transform: uppercase; font-weight: bold; }
+        .ws-cell {
+            width: 30px;
+            height: 30px;
+            background: #1a1a3a;
+            border: 1px solid var(--neon-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+        }
+        .ws-cell.selected { background: var(--neon-purple); color: white; }
+        .ws-cell.found { background: var(--neon-blue); color: var(--space-dark); }
+        #ws-words {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .ws-word-item { padding: 5px 10px; border-radius: 15px; background: #111122; border: 1px solid #444; }
+        .ws-word-item.found { text-decoration: line-through; opacity: 0.5; border-color: var(--neon-green); }
+
+        /* Crucigrama Styles */
+        .crossword-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 40px);
+            gap: 2px;
+            justify-content: center;
+            margin: 20px auto;
+            width: fit-content;
+        }
+        .cw-cell { 
+            width: 40px; height: 40px; background: #1a1a3a; border: 1px solid #444; 
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .cw-cell input { 
+            width: 100%; height: 100%; background: transparent; border: none; 
+            color: var(--neon-blue); text-align: center; font-size: 1.2em; text-transform: uppercase; font-weight: bold; 
+        }
         .cw-cell.empty { background: transparent; border: none; }
+        .cw-cell .num { position: absolute; top: 2px; left: 2px; font-size: 10px; color: #888; pointer-events: none;}
+        .cw-correct { background-color: rgba(0, 255, 115, 0.2) !important; border-color: var(--neon-green) !important; }
         
         /* Animación de Felicitación */
         .celebration {
@@ -143,7 +186,7 @@
     <div class="stats">🌟 Racha de Victorias: <span id="streak">0</span></div>
 
     <div class="menu">
-        <button onclick="showGame('flashcards')" id="btn-flashcards" class="active-btn">1. Tarjetas de Estudio</button>
+        <button onclick="showGame('flashcards')" id="btn-flashcards" class="active-btn">1. Tarjetas</button>
         <button onclick="showGame('wordsearch')" id="btn-wordsearch">2. Sopa de Letras</button>
         <button onclick="showGame('crossword')" id="btn-crossword">3. Crucigrama</button>
         <button onclick="showGame('hangman')" id="btn-hangman">4. Ahorcado</button>
@@ -164,25 +207,25 @@
 
     <!-- 2. Sopa de Letras -->
     <div id="wordsearch" class="game-container">
-        <h2>Sopa de Letras (En Construcción)</h2>
-        <p>Encuentra las palabras ocultas en la nebulosa.</p>
-        <p style="color: #888;">(Espacio reservado para el grid generado de la matriz de datos)</p>
+        <h2>Nebulosa de Palabras</h2>
+        <p>Encuentra las palabras haciendo clic/tocando las letras una por una para formar la palabra.</p>
+        <div id="ws-grid"></div>
+        <div id="ws-words"></div>
+        <button onclick="checkWordSearch()" style="margin-top: 15px;">Verificar Selección</button>
+        <button onclick="clearWsSelection()" style="margin-top: 15px; border-color: #ff0055; color: #ff0055;">Limpiar</button>
     </div>
 
     <!-- 3. Crucigrama -->
     <div id="crossword" class="game-container">
         <h2>Crucigrama Estelar</h2>
-        <p>Completa las celdas usando las pistas (Solo lectura en esta demo).</p>
-        <div class="crossword-grid">
-            <!-- Representación simplificada de intersección -->
-            <div class="cw-cell empty"></div><div class="cw-cell"><input type="text" maxlength="1"></div><div class="cw-cell empty"></div>
-            <div class="cw-cell"><input type="text" maxlength="1"></div><div class="cw-cell"><input type="text" maxlength="1" value="A"></div><div class="cw-cell"><input type="text" maxlength="1"></div>
-            <div class="cw-cell empty"></div><div class="cw-cell"><input type="text" maxlength="1"></div><div class="cw-cell empty"></div>
+        <p>Escribe las letras en las casillas. Presiona 'Verificar' cuando termines.</p>
+        <div class="crossword-grid" id="cw-grid"></div>
+        <div style="text-align: left; margin-top: 20px; font-size: 0.9em; max-width: 500px; margin-left: auto; margin-right: auto;">
+            <p><strong>1 (H):</strong> A feeling of worry or nervousness (7 letras)</p>
+            <p><strong>2 (V):</strong> A condition that puts one in a favorable position (9 letras)</p>
+            <p><strong>3 (H):</strong> The way a thing turns out (7 letras)</p>
         </div>
-        <div style="text-align: left; margin-top: 20px;">
-            <p><strong>Horizontal:</strong> 1. Feeling of worry (ANXIETY)</p>
-            <p><strong>Vertical:</strong> 2. A condition that puts one in a favorable position (ADVANTAGE)</p>
-        </div>
+        <button onclick="checkCrossword()" style="margin-top: 15px;">Verificar Crucigrama</button>
     </div>
 
     <!-- 4. Ahorcado -->
@@ -232,7 +275,7 @@
             document.getElementById('btn-' + id).classList.add('active-btn');
         }
 
-        /* --- Lógica de Tarjetas --- */
+        /* --- 1. Lógica de Tarjetas --- */
         let fcIndex = 0;
         function nextFlashcard() {
             fcIndex = (fcIndex + 1) % vocab.length;
@@ -243,7 +286,165 @@
             }, 300);
         }
 
-        /* --- Lógica de Ahorcado --- */
+        /* --- 2. Lógica Sopa de Letras --- */
+        const wsWords = ["ANXIETY", "OUTCOME", "ISSUE"];
+        let wsFoundCount = 0;
+        
+        // Matriz estática
+        const wsGridData = [
+            ['A','N','X','I','E','T','Y','P','L','M'],
+            ['Q','W','E','R','T','Y','U','I','O','P'],
+            ['A','S','D','F','G','H','J','K','L','Z'],
+            ['O','U','T','C','O','M','E','X','C','V'],
+            ['B','N','M','Q','W','E','R','T','Y','U'],
+            ['I','S','S','U','E','I','O','P','A','S'],
+            ['D','F','G','H','J','K','L','Z','X','C'],
+            ['V','B','N','M','Q','W','E','R','T','Y'],
+            ['U','I','O','P','A','S','D','F','G','H'],
+            ['J','K','L','Z','X','C','V','B','N','M']
+        ];
+
+        function initWordSearch() {
+            const gridEl = document.getElementById('ws-grid');
+            const wordsEl = document.getElementById('ws-words');
+            gridEl.innerHTML = '';
+            wordsEl.innerHTML = '';
+            wsFoundCount = 0;
+
+            wsWords.forEach(w => {
+                let div = document.createElement('div');
+                div.className = 'ws-word-item';
+                div.id = 'wsword-' + w;
+                div.innerText = w;
+                wordsEl.appendChild(div);
+            });
+
+            for(let r=0; r<10; r++) {
+                for(let c=0; c<10; c++) {
+                    let cell = document.createElement('div');
+                    cell.className = 'ws-cell';
+                    cell.innerText = wsGridData[r][c];
+                    // Para que funcione en móviles sin librerías complejas, haremos selección por clics individuales
+                    cell.onclick = function() {
+                        if(!this.classList.contains('found')) {
+                            this.classList.toggle('selected');
+                        }
+                    };
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function clearWsSelection() {
+            document.querySelectorAll('.ws-cell.selected').forEach(el => el.classList.remove('selected'));
+        }
+
+        function checkWordSearch() {
+            let selectedCells = Array.from(document.querySelectorAll('.ws-cell.selected'));
+            let selectedWord = selectedCells.map(c => c.innerText).join('');
+            
+            let foundIdx = wsWords.indexOf(selectedWord);
+            
+            if(foundIdx !== -1) {
+                let wordToMark = wsWords[foundIdx];
+                let item = document.getElementById('wsword-' + wordToMark);
+                if(item && !item.classList.contains('found')) {
+                    item.classList.add('found');
+                    selectedCells.forEach(c => {
+                        c.classList.remove('selected');
+                        c.classList.add('found');
+                    });
+                    wsFoundCount++;
+                    if(wsFoundCount === wsWords.length) {
+                        updateStreak(true);
+                        setTimeout(initWordSearch, 2000);
+                    }
+                }
+            } else {
+                // Limpiar si no es correcta para que vuelvan a intentar
+                clearWsSelection();
+            }
+        }
+
+        /* --- 3. Lógica Crucigrama --- */
+        // Diseño acotado y funcional: 5 filas x 8 columnas
+        const simpleCw = [
+            [0, {n:1, a:'A'}, {a:'N'}, {a:'X'}, {a:'I'}, {a:'E'}, {a:'T'}, {a:'Y'}],
+            [0, {a:'D'}, 0, 0, 0, 0, 0, 0],
+            [0, {a:'V'}, 0, 0, 0, 0, 0, 0],
+            [0, {a:'A'}, 0, {n:3, a:'O'}, {a:'U'}, {a:'T'}, {a:'C'}, {a:'O'}], // Acorté OUTCOME a OUTCO para encajar visualmente en 8 cols, asumiendo demo
+            [0, {a:'N'}, 0, 0, 0, 0, 0, 0],
+        ];
+        // Para que OUTCOME entre completo, modifiquemos el tablero a 9 columnas en JS y CSS indirectamente
+        const finalCw = [
+            [0, {n:1, a:'A'}, {a:'N'}, {a:'X'}, {a:'I'}, {a:'E'}, {a:'T'}, {a:'Y'}, 0],
+            [0, {a:'D'}, 0, 0, 0, 0, 0, 0, 0],
+            [0, {a:'V'}, 0, 0, 0, 0, 0, 0, 0],
+            [0, {a:'A'}, {n:3, a:'O'}, {a:'U'}, {a:'T'}, {a:'C'}, {a:'O'}, {a:'M'}, {a:'E'}], 
+            [0, {a:'N'}, 0, 0, 0, 0, 0, 0, 0],
+            [0, {a:'T'}, 0, 0, 0, 0, 0, 0, 0],
+            [0, {a:'A'}, 0, 0, 0, 0, 0, 0, 0],
+            [0, {a:'G'}, 0, 0, 0, 0, 0, 0, 0],
+            [0, {a:'E'}, 0, 0, 0, 0, 0, 0, 0]
+        ];
+
+        function initCrossword() {
+            const gridEl = document.getElementById('cw-grid');
+            gridEl.style.gridTemplateColumns = 'repeat(9, 40px)'; // Ajuste para 9 columnas
+            gridEl.innerHTML = '';
+            
+            for(let r=0; r<9; r++) {
+                for(let c=0; c<9; c++) {
+                    let cellData = finalCw[r][c];
+                    let div = document.createElement('div');
+                    
+                    if(cellData === 0) {
+                        div.className = 'cw-cell empty';
+                    } else {
+                        div.className = 'cw-cell';
+                        if(cellData.n) {
+                            let num = document.createElement('div');
+                            num.className = 'num';
+                            num.innerText = cellData.n;
+                            div.appendChild(num);
+                        }
+                        let inp = document.createElement('input');
+                        inp.type = 'text';
+                        inp.maxLength = 1;
+                        inp.dataset.ans = cellData.a;
+                        
+                        inp.addEventListener('input', function() {
+                            this.value = this.value.toUpperCase();
+                        });
+                        
+                        div.appendChild(inp);
+                    }
+                    gridEl.appendChild(div);
+                }
+            }
+        }
+
+        function checkCrossword() {
+            let inputs = document.querySelectorAll('#cw-grid input');
+            let allCorrect = true;
+            let filledCount = 0;
+            
+            inputs.forEach(inp => {
+                if(inp.value !== "") filledCount++;
+                if(inp.value === inp.dataset.ans) {
+                    inp.parentElement.classList.add('cw-correct');
+                } else {
+                    inp.parentElement.classList.remove('cw-correct');
+                    allCorrect = false;
+                }
+            });
+
+            if(allCorrect && filledCount === inputs.length) {
+                updateStreak(true);
+            }
+        }
+
+        /* --- 4. Lógica de Ahorcado --- */
         let hmWord = "";
         let hmGuessed = [];
         let hmLives = 6;
@@ -302,8 +503,11 @@
             }
         }
 
-        // Inicializar
+        // Initialize all
+        initWordSearch();
+        initCrossword();
         initHangman();
+        nextFlashcard(); // Cargar la primera flashcard correctamente
     </script>
 </body>
 </html>
